@@ -1,0 +1,36 @@
+version: '3.8'
+services:
+  db:
+    image: postgres:15
+    environment:
+      POSTGRES_USER: academia
+      POSTGRES_PASSWORD: academia
+      POSTGRES_DB: academia
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+  rabbitmq:
+    image: rabbitmq:3-management
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+  app:
+    build: .
+    command: uvicorn app.main:app --host 0.0.0.0 --port 8000
+    volumes:
+      - .:/app
+    environment:
+      - POSTGRES_USER=academia
+      - POSTGRES_PASSWORD=academia
+      - POSTGRES_HOST=db
+      - POSTGRES_PORT=5432
+      - POSTGRES_DB=academia
+      - SECRET_KEY=supersecret
+    depends_on:
+      - db
+      - rabbitmq
+    ports:
+      - "8000:8000"
+volumes:
+  pgdata:
